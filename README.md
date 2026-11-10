@@ -1,20 +1,29 @@
 # 📚 Book Nook — Cozy Magical Library
 
-A full-stack online bookstore catalog built with **Java 17 + Spring Boot 3 + H2 + vanilla HTML/CSS/JS**.
+A full-stack online bookstore catalog and inventory management web app built with **Java 17 + Spring Boot 3 + Spring Data JPA + H2 (File Mode) + Vanilla HTML/CSS/JS**.
+
+🌐 **Live Demo on GitHub Pages**: [https://dharanirunku02-png.github.io/book-nook/](https://dharanirunku02-png.github.io/book-nook/)  
+📦 **GitHub Repository**: [https://github.com/dharanirunku02-png/book-nook](https://github.com/dharanirunku02-png/book-nook)
 
 ---
 
-## 🚀 Setup & Run
+## 🚀 Setup & Run (Local Java Backend)
 
 ### Prerequisites
-- Java 17+
-- Maven 3.8+
+- Java 17+ (or Corretto / OpenJDK 17)
+- Maven 3.8+ (or use the included `./mvnw` wrapper)
 
 ### One-command start
 
 ```bash
-cd bookstore
+# Using standard Maven
 mvn spring-boot:run
+
+# Or using the included Maven Wrapper (Windows PowerShell)
+.\mvnw.cmd spring-boot:run
+
+# Or using the included Maven Wrapper (Linux / macOS)
+./mvnw spring-boot:run
 ```
 
 Then open **http://localhost:8080** in your browser.
