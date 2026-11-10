@@ -800,35 +800,234 @@ function showToast(message, type = 'info') {
 
 /**
  * apiFetch — a small wrapper around the browser's fetch() API.
- * Always sends/receives JSON. Throws an error object on non-2xx responses.
- *
- * @param {string} url      - relative URL like '/api/books'
- * @param {string} method   - 'GET' (default), 'POST', 'PUT', 'DELETE'
- * @param {object} body     - optional request body (will be JSON.stringify'd)
+ * When running with the Spring Boot backend, it calls the Java REST API.
+ * When deployed as a static site (e.g. GitHub Pages), it smoothly falls back
+ * to a client-side mock store with the exact same business rules and data!
  */
+const IS_STATIC_HOST = window.location.hostname.includes('github.io') || window.location.protocol === 'file:';
+
 async function apiFetch(url, method = 'GET', body = null) {
-  const opts = {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-  };
-  if (body) opts.body = JSON.stringify(body);
-
-  const response = await fetch(url, opts);
-
-  if (!response.ok) {
-    // Try to read the JSON error from GlobalExceptionHandler
-    let errData;
-    try { errData = await response.json(); } catch (_) { errData = {}; }
-    const err = new Error(errData.error || `HTTP ${response.status}`);
-    err.status = response.status;
-    err.message = errData.error || `HTTP ${response.status}`;
-    throw err;
+  if (IS_STATIC_HOST) {
+    return mockApiHandler(url, method, body);
   }
 
-  // 204 No Content responses have no body
-  if (response.status === 204) return null;
+  try {
+    const opts = {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+    };
+    if (body) opts.body = JSON.stringify(body);
 
-  return response.json();
+    const response = await fetch(url, opts);
+
+    if (!response.ok) {
+      let errData;
+      try { errData = await response.json(); } catch (_) { errData = {}; }
+      const err = new Error(errData.error || `HTTP ${response.status}`);
+      err.status = response.status;
+      err.message = errData.error || `HTTP ${response.status}`;
+      throw err;
+    }
+
+    if (response.status === 204) return null;
+    return response.json();
+  } catch (err) {
+    // If backend is unreachable on custom domain, fallback to mock store
+    if (err.name === 'TypeError' || err.status === 404) {
+      console.warn('Backend API not reachable. Using static demo store.', err);
+      return mockApiHandler(url, method, body);
+    }
+    throw err;
+  }
+}
+
+// ─── Static Demo Store for GitHub Pages ─────────────────────────────────────
+const MOCK_STORE_KEY = 'booknook_mock_db_v1';
+function getMockDB() {
+  const saved = localStorage.getItem(MOCK_STORE_KEY);
+  if (saved) {
+    try { return JSON.parse(saved); } catch (_) {}
+  }
+  const initial = {
+    users: [
+      { id: 1, name: "Priya Sharma" },
+      { id: 2, name: "Arjun Mehta" },
+      { id: 3, name: "Meera Nair" }
+    ],
+    wishlists: {
+      1: [],
+      2: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+      3: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    },
+    books: [
+      { id:1, title:"The Midnight Library", author:"Matt Haig", category:"Fiction", price:499.00, stock:45 },
+      { id:2, title:"The Alchemist", author:"Paulo Coelho", category:"Fiction", price:299.00, stock:80 },
+      { id:3, title:"Ikigai", author:"Héctor García", category:"Fiction", price:349.00, stock:60 },
+      { id:4, title:"Where the Crawdads Sing", author:"Delia Owens", category:"Fiction", price:599.00, stock:30 },
+      { id:5, title:"The Kite Runner", author:"Khaled Hosseini", category:"Fiction", price:399.00, stock:8 },
+      { id:6, title:"A Brief History of Time", author:"Stephen Hawking", category:"Science", price:549.00, stock:25 },
+      { id:7, title:"The Gene: An Intimate History", author:"Siddhartha Mukherjee", category:"Science", price:799.00, stock:15 },
+      { id:8, title:"Cosmos", author:"Carl Sagan", category:"Science", price:649.00, stock:3 },
+      { id:9, title:"Sapiens", author:"Yuval Noah Harari", category:"History", price:699.00, stock:50 },
+      { id:10, title:"India After Gandhi", author:"Ramachandra Guha", category:"History", price:899.00, stock:20 },
+      { id:11, title:"The Discovery of India", author:"Jawaharlal Nehru", category:"History", price:449.00, stock:35 },
+      { id:12, title:"Clean Code", author:"Robert C. Martin", category:"Tech", price:749.00, stock:40 },
+      { id:13, title:"The Pragmatic Programmer", author:"David Thomas", category:"Tech", price:849.00, stock:22 },
+      { id:14, title:"Design Patterns", author:"Gang of Four", category:"Tech", price:999.00, stock:18 },
+      { id:15, title:"You Don't Know JS", author:"Kyle Simpson", category:"Tech", price:399.00, stock:0 },
+      { id:16, title:"Harry Potter & the Sorcerer's Stone", author:"J.K. Rowling", category:"Kids", price:449.00, stock:70 },
+      { id:17, title:"The Little Prince", author:"Antoine de Saint-Exupéry", category:"Kids", price:249.00, stock:55 },
+      { id:18, title:"Matilda", author:"Roald Dahl", category:"Kids", price:299.00, stock:40 },
+      { id:19, title:"Atomic Habits", author:"James Clear", category:"Self-Help", price:599.00, stock:90 },
+      { id:20, title:"Deep Work", author:"Cal Newport", category:"Self-Help", price:499.00, stock:35 }
+    ]
+  };
+  saveMockDB(initial);
+  return initial;
+}
+
+function saveMockDB(db) {
+  localStorage.setItem(MOCK_STORE_KEY, JSON.stringify(db));
+}
+
+async function mockApiHandler(url, method, body) {
+  const db = getMockDB();
+  const parsed = new URL(url, 'http://localhost');
+  const path = parsed.pathname;
+
+  // GET /api/users
+  if (path === '/api/users' && method === 'GET') {
+    return db.users;
+  }
+
+  // GET /api/categories
+  if (path === '/api/categories' && method === 'GET') {
+    const cats = Array.from(new Set(db.books.map(b => b.category))).sort();
+    return cats;
+  }
+
+  // GET /api/books
+  if (path === '/api/books' && method === 'GET') {
+    let result = [...db.books];
+    const search = parsed.searchParams.get('search');
+    const category = parsed.searchParams.get('category');
+    const sort = parsed.searchParams.get('sort');
+
+    if (search) {
+      const q = search.toLowerCase();
+      result = result.filter(b => b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q));
+    }
+    if (category) {
+      result = result.filter(b => b.category.toLowerCase() === category.toLowerCase());
+    }
+    if (sort === 'price_asc') {
+      result.sort((a,b) => a.price - b.price);
+    } else if (sort === 'price_desc') {
+      result.sort((a,b) => b.price - a.price);
+    } else {
+      result.sort((a,b) => a.title.localeCompare(b.title));
+    }
+    return result;
+  }
+
+  // POST /api/books (Admin Add)
+  if (path === '/api/books' && method === 'POST') {
+    const newId = db.books.length > 0 ? Math.max(...db.books.map(b => b.id)) + 1 : 1;
+    const newBook = { id: newId, ...body };
+    db.books.push(newBook);
+    saveMockDB(db);
+    return newBook;
+  }
+
+  // PUT /api/books/:id (Admin Edit)
+  const putMatch = path.match(/^\/api\/books\/(\d+)$/);
+  if (putMatch && method === 'PUT') {
+    const bookId = Number(putMatch[1]);
+    const idx = db.books.findIndex(b => b.id === bookId);
+    if (idx === -1) {
+      const err = new Error(`Book not found with id: ${bookId}`);
+      err.status = 404; throw err;
+    }
+    db.books[idx] = { id: bookId, ...body };
+    saveMockDB(db);
+    return db.books[idx];
+  }
+
+  // DELETE /api/books/:id (Admin Delete)
+  const delMatch = path.match(/^\/api\/books\/(\d+)$/);
+  if (delMatch && method === 'DELETE') {
+    const bookId = Number(delMatch[1]);
+    db.books = db.books.filter(b => b.id !== bookId);
+    // Also remove from any wishlists
+    for (const uid in db.wishlists) {
+      db.wishlists[uid] = db.wishlists[uid].filter(id => id !== bookId);
+    }
+    saveMockDB(db);
+    return null;
+  }
+
+  // GET /api/wishlist/:userId
+  const wishGetMatch = path.match(/^\/api\/wishlist\/(\d+)$/);
+  if (wishGetMatch && method === 'GET') {
+    const uid = Number(wishGetMatch[1]);
+    const ids = db.wishlists[uid] || [];
+    const books = ids.map(id => db.books.find(b => b.id === id)).filter(Boolean);
+    return {
+      books,
+      count: books.length,
+      limit: 10,
+      over_limit: books.length > 10
+    };
+  }
+
+  // POST /api/wishlist/:userId/:bookId
+  const wishAddMatch = path.match(/^\/api\/wishlist\/(\d+)\/(\d+)$/);
+  if (wishAddMatch && method === 'POST') {
+    const uid = Number(wishAddMatch[1]);
+    const bid = Number(wishAddMatch[2]);
+    if (!db.wishlists[uid]) db.wishlists[uid] = [];
+    const list = db.wishlists[uid];
+
+    if (list.includes(bid)) {
+      const err = new Error(`Book ${bid} is already in the wishlist of user ${uid}.`);
+      err.status = 409; throw err;
+    }
+    if (list.length >= 10) {
+      const err = new Error('Wishlist limit reached. Remove a book to add a new one.');
+      err.status = 409; throw err;
+    }
+
+    list.push(bid);
+    saveMockDB(db);
+    const books = list.map(id => db.books.find(b => b.id === id)).filter(Boolean);
+    return {
+      books,
+      count: books.length,
+      limit: 10,
+      over_limit: books.length > 10
+    };
+  }
+
+  // DELETE /api/wishlist/:userId/:bookId
+  const wishDelMatch = path.match(/^\/api\/wishlist\/(\d+)\/(\d+)$/);
+  if (wishDelMatch && method === 'DELETE') {
+    const uid = Number(wishDelMatch[1]);
+    const bid = Number(wishDelMatch[2]);
+    if (db.wishlists[uid]) {
+      db.wishlists[uid] = db.wishlists[uid].filter(id => id !== bid);
+      saveMockDB(db);
+    }
+    const list = db.wishlists[uid] || [];
+    const books = list.map(id => db.books.find(b => b.id === id)).filter(Boolean);
+    return {
+      books,
+      count: books.length,
+      limit: 10,
+      over_limit: books.length > 10
+    };
+  }
+
+  throw new Error(`Endpoint not found: ${path}`);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
