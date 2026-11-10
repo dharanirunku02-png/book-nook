@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Book Nook — Cozy Magical Library</title>
+
+  <!-- Google Fonts: Playfair Display for headings, Poppins for body text -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     NAVBAR
+═══════════════════════════════════════════════════════════════════════ -->
+<nav class="navbar">
+  <div class="nav-logo">
+    <!-- Custom open-book-with-star SVG logo -->
+    <svg width="38" height="38" viewBox="0 0 38 38" fill="none" aria-hidden="true">
+      <path d="M4 8 C4 6 6 5 8 5 L19 7 L30 5 C32 5 34 6 34 8 L34 30 C34 32 32 33 30 33 L19 31 L8 33 C6 33 4 32 4 30 Z" fill="var(--gold)" opacity="0.18"/>
+      <path d="M19 7 L19 31" stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="3 2"/>
+      <path d="M4 8 C4 6 6 5 8 5 L19 7 L19 31 L8 33 C6 33 4 32 4 30 Z" fill="var(--gold)" opacity="0.35"/>
+      <path d="M34 8 C34 6 32 5 30 5 L19 7 L19 31 L30 33 C32 33 34 32 34 30 Z" fill="var(--gold)" opacity="0.55"/>
+      <polygon points="19,3 20.3,6.5 24,6.5 21.1,8.7 22.2,12.3 19,10.2 15.8,12.3 16.9,8.7 14,6.5 17.7,6.5" fill="var(--gold)"/>
+    </svg>
+    <span class="logo-text">Book Nook</span>
+  </div>
+
+  <div class="nav-center">
+    <!-- Page navigation tabs -->
+    <button class="nav-tab active" data-page="catalog" onclick="showPage('catalog')">📚 Catalog</button>
+    <button class="nav-tab" data-page="wishlist" onclick="showPage('wishlist')">
+      <!-- Bookmark-heart SVG icon -->
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M3 2 L3 14 L8 11 L13 14 L13 2 Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        <path d="M6 6 C6 5 7 4.5 8 5.5 C9 4.5 10 5 10 6 C10 7.5 8 9 8 9 C8 9 6 7.5 6 6 Z" fill="currentColor"/>
+      </svg>
+      Wishlist <span class="wishlist-badge" id="wishlistBadge">0</span>
+    </button>
+    <button class="nav-tab" data-page="admin" onclick="showPage('admin')">⚙️ Admin</button>
+  </div>
+
+  <div class="nav-right">
+    <!-- User switcher -->
+    <div class="user-switcher">
+      <span class="user-label">👤</span>
+      <select id="userSelect" onchange="switchUser(this.value)" title="Switch user">
+        <option value="">Select User</option>
+      </select>
+    </div>
+    <!-- Dark/Light mode toggle -->
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode" aria-label="Toggle theme">
+      <span id="themeIcon">☀️</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     CATALOG PAGE
+═══════════════════════════════════════════════════════════════════════ -->
+<main id="catalogPage" class="page active">
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-text">
+      <h1 class="hero-title">Your Magical<br/><em>Reading Corner</em></h1>
+      <p class="hero-tagline">Discover stories that spark wonder, knowledge that ignites minds.</p>
+      <button class="btn-primary" onclick="document.getElementById('catalog-section').scrollIntoView({behavior:'smooth'})">
+        Explore Books ✨
+      </button>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <!-- Floating books illustration (inline SVG) -->
+      <svg width="280" height="260" viewBox="0 0 280 260" fill="none">
+        <!-- Bottom book (big, gold) -->
+        <rect x="40" y="180" width="200" height="28" rx="4" fill="var(--gold)" opacity="0.9" class="float-book-1"/>
+        <rect x="40" y="180" width="12" height="28" rx="2" fill="#b8860b"/>
+        <line x1="58" y1="186" x2="230" y2="186" stroke="#fff" stroke-width="1" opacity="0.4"/>
+        <!-- Middle book (teal) -->
+        <rect x="60" y="148" width="160" height="26" rx="4" fill="#2dd4bf" opacity="0.85" class="float-book-2"/>
+        <rect x="60" y="148" width="10" height="26" rx="2" fill="#0d9488"/>
+        <line x1="76" y1="154" x2="210" y2="154" stroke="#fff" stroke-width="1" opacity="0.4"/>
+        <!-- Top book (coral) -->
+        <rect x="80" y="118" width="120" height="24" rx="4" fill="var(--coral)" opacity="0.9" class="float-book-3"/>
+        <rect x="80" y="118" width="10" height="24" rx="2" fill="#c0392b"/>
+        <line x1="96" y1="124" x2="192" y2="124" stroke="#fff" stroke-width="1" opacity="0.4"/>
+        <!-- Tiny top book (lavender) -->
+        <rect x="100" y="92" width="80" height="20" rx="4" fill="#c084fc" opacity="0.85" class="float-book-4"/>
+        <rect x="100" y="92" width="8" height="20" rx="2" fill="#9333ea"/>
+        <!-- Stars -->
+        <circle cx="30" cy="80" r="3" fill="var(--gold)" opacity="0.8" class="twinkle"/>
+        <circle cx="250" cy="60" r="2" fill="var(--gold)" opacity="0.6" class="twinkle-2"/>
+        <circle cx="20" cy="150" r="2" fill="#c084fc" opacity="0.7" class="twinkle"/>
+        <circle cx="265" cy="140" r="3" fill="var(--gold)" opacity="0.5" class="twinkle-2"/>
+        <circle cx="140" cy="40" r="2.5" fill="#2dd4bf" opacity="0.7" class="twinkle"/>
+        <!-- Open book (decorative, below stack) -->
+        <path d="M70 215 Q140 205 210 215" stroke="var(--gold)" stroke-width="1.5" fill="none" opacity="0.5"/>
+        <path d="M70 215 L70 240 Q140 232 140 240 Q140 232 210 240 L210 215" fill="none" stroke="var(--gold)" stroke-width="1" opacity="0.4"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ── Catalog Section ─────────────────────────────────────────────────── -->
+  <section id="catalog-section" class="catalog-section">
+
+    <!-- Over-limit warning banner (shown when active user has >10 wishlist books) -->
+    <div class="over-limit-banner hidden" id="overLimitBanner">
+      ⚠️ <strong>This wishlist has more than 10 books.</strong> You can remove books but cannot add new ones.
+    </div>
+
+    <!-- Search, Filter and Sort bar -->
+    <div class="controls-bar">
+      <div class="search-box">
+        <!-- Book-magnifying-glass custom SVG icon -->
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <circle cx="8" cy="8" r="5.5" stroke="var(--gold)" stroke-width="1.8"/>
+          <line x1="12.5" y1="12.5" x2="17" y2="17" stroke="var(--gold)" stroke-width="2" stroke-linecap="round"/>
+          <rect x="5" y="5.5" width="6" height="1.2" rx="0.6" fill="var(--gold)" opacity="0.6"/>
+          <rect x="5" y="8" width="4" height="1.2" rx="0.6" fill="var(--gold)" opacity="0.6"/>
+        </svg>
+        <input type="text" id="searchInput" placeholder="Search by title or author…" oninput="debounceSearch()" autocomplete="off"/>
+      </div>
+
+      <div class="filter-group">
+        <select id="categoryFilter" onchange="applyFilters()" title="Filter by category">
+          <option value="">All Categories</option>
+        </select>
+        <select id="sortSelect" onchange="applyFilters()" title="Sort books">
+          <option value="">Sort: A–Z</option>
+          <option value="price_asc">Price: Low → High</option>
+          <option value="price_desc">Price: High → Low</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Book grid -->
+    <div class="book-grid" id="bookGrid">
+      <!-- Cards injected by JS -->
+      <div class="loading-state" id="loadingState">
+        <div class="spinner"></div>
+        <p>Loading magical books…</p>
+      </div>
+    </div>
+
+    <p class="no-results hidden" id="noResults">No books found. Try a different search! 🔍</p>
+  </section>
+</main>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     WISHLIST PAGE
+═══════════════════════════════════════════════════════════════════════ -->
+<main id="wishlistPage" class="page hidden">
+  <section class="wishlist-section">
+    <h2 class="section-title">
+      <!-- Bookmark heart icon -->
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M6 4 L6 24 L14 19 L22 24 L22 4 Z" stroke="var(--gold)" stroke-width="2" fill="none"/>
+        <path d="M10.5 10 C10.5 8.5 12 8 14 9.5 C16 8 17.5 8.5 17.5 10 C17.5 12.5 14 15 14 15 C14 15 10.5 12.5 10.5 10 Z" fill="var(--coral)"/>
+      </svg>
+      My Wishlist
+    </h2>
+
+    <!-- Progress bar + counter -->
+    <div class="wishlist-progress-wrap" id="wishlistProgressWrap">
+      <div class="wishlist-counter" id="wishlistCounter">0 / 10</div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+
+    <!-- Warning banner for wishlist page (over_limit) -->
+    <div class="over-limit-banner hidden" id="wishlistOverLimitBanner">
+      ⚠️ <strong>This wishlist has more than 10 books.</strong> You can remove books but cannot add new ones.
+    </div>
+
+    <div class="wishlist-grid" id="wishlistGrid">
+      <div class="empty-wishlist" id="emptyWishlist">
+        <svg width="80" height="80" viewBox="0 0 80 80" fill="none" aria-hidden="true">
+          <path d="M15 10 L15 70 L40 55 L65 70 L65 10 Z" stroke="var(--gold)" stroke-width="2.5" fill="none" opacity="0.4"/>
+          <path d="M30 32 C30 27 35 25 40 29 C45 25 50 27 50 32 C50 39 40 45 40 45 C40 45 30 39 30 32 Z" fill="var(--gold)" opacity="0.25"/>
+        </svg>
+        <p>Your wishlist is empty.<br/>Add some books from the catalog!</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     ADMIN PAGE
+═══════════════════════════════════════════════════════════════════════ -->
+<main id="adminPage" class="page hidden">
+  <section class="admin-section">
+    <div class="admin-header">
+      <div>
+        <h2 class="section-title">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          Admin Book Management
+        </h2>
+        <p class="admin-subtitle">Add new books to the catalog, update prices and stock, or remove titles.</p>
+      </div>
+      <button class="btn-primary" onclick="openAddBookModal()">
+        <span>➕</span> Add New Book
+      </button>
+    </div>
+
+    <!-- Admin KPI Cards -->
+    <div class="admin-stats-grid">
+      <div class="stat-card">
+        <span class="stat-icon">📚</span>
+        <div class="stat-info">
+          <span class="stat-num" id="statTotalBooks">0</span>
+          <span class="stat-label">Total Books</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">🏷️</span>
+        <div class="stat-info">
+          <span class="stat-num" id="statCategories">0</span>
+          <span class="stat-label">Categories</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">⚠️</span>
+        <div class="stat-info">
+          <span class="stat-num" id="statLowStock">0</span>
+          <span class="stat-label">Low Stock (≤5)</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">🚫</span>
+        <div class="stat-info">
+          <span class="stat-num" id="statOutStock">0</span>
+          <span class="stat-label">Out of Stock</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin search & filter toolbar -->
+    <div class="admin-toolbar">
+      <div class="search-box" style="flex: 1; max-width: 400px;">
+        <input type="text" id="adminSearchInput" placeholder="Filter inventory by title or author..." oninput="filterAdminTable()" class="admin-search-input" />
+      </div>
+      <select id="adminCategorySelect" onchange="filterAdminTable()" class="admin-cat-select">
+        <option value="">All Categories</option>
+      </select>
+    </div>
+
+    <!-- Admin Inventory Table -->
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th style="width: 45px;">Spine</th>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th style="text-align: right; width: 140px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="adminTableBody">
+          <!-- Filled by JS -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     ADMIN ADD / EDIT BOOK MODAL
+═══════════════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="bookFormModal" onclick="closeBookFormModal(event)">
+  <div class="modal-card form-modal-card" role="dialog" aria-modal="true" aria-labelledby="bookFormTitle">
+    <button class="modal-close" onclick="closeBookFormModal()" aria-label="Close">&times;</button>
+    <div class="modal-body" style="padding: 2rem;">
+      <h2 class="modal-title" id="bookFormTitle" style="color: var(--gold); margin-bottom: 0.3rem;">Add New Book</h2>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Enter book details to publish into the catalog.</p>
+
+      <form id="bookForm" onsubmit="handleBookFormSubmit(event)">
+        <input type="hidden" id="formBookId" value="" />
+
+        <div class="form-group">
+          <label for="formTitle" class="form-label">Book Title *</label>
+          <input type="text" id="formTitle" required placeholder="e.g. Clean Architecture" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label for="formAuthor" class="form-label">Author *</label>
+          <input type="text" id="formAuthor" required placeholder="e.g. Robert C. Martin" class="form-input" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" style="flex: 1;">
+            <label for="formCategory" class="form-label">Category *</label>
+            <input type="text" id="formCategory" list="categoriesDatalist" required placeholder="Select or type..." class="form-input" />
+            <datalist id="categoriesDatalist">
+              <option value="Fiction">
+              <option value="Science">
+              <option value="History">
+              <option value="Tech">
+              <option value="Kids">
+              <option value="Self-Help">
+            </datalist>
+          </div>
+
+          <div class="form-group" style="width: 140px;">
+            <label for="formPrice" class="form-label">Price (₹) *</label>
+            <input type="number" id="formPrice" required step="0.01" min="0.01" placeholder="499.00" class="form-input" />
+          </div>
+
+          <div class="form-group" style="width: 110px;">
+            <label for="formStock" class="form-label">Stock *</label>
+            <input type="number" id="formStock" required min="0" placeholder="25" class="form-input" />
+          </div>
+        </div>
+
+        <div class="form-error-msg hidden" id="formErrorMsg"></div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" onclick="closeBookFormModal()">Cancel</button>
+          <button type="submit" class="btn-primary" id="formSubmitBtn">
+            <span>💾</span> Save Book
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     BOOK DETAIL POPUP (modal)
+═══════════════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal-card" id="modalCard" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <button class="modal-close" onclick="closeModal()" aria-label="Close">&times;</button>
+    <div class="modal-spine" id="modalSpine"></div>
+    <div class="modal-body">
+      <div class="modal-category-badge" id="modalCategory"></div>
+      <h2 class="modal-title" id="modalTitle"></h2>
+      <p class="modal-author" id="modalAuthor">
+        <!-- Feather pen SVG icon -->
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M12 2 C14 4 14 7 10 10 L6 14 L2 14 L2 10 L6 6 Z" stroke="var(--gold)" stroke-width="1.3" fill="none"/>
+          <path d="M9 5 L11 7" stroke="var(--gold)" stroke-width="1.3"/>
+          <path d="M2 14 L4 11" stroke="var(--gold)" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <span id="modalAuthorText"></span>
+      </p>
+      <div class="modal-meta">
+        <span class="meta-price" id="modalPrice">
+          <!-- Gold coin SVG icon -->
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <circle cx="8" cy="8" r="6.5" stroke="var(--gold)" stroke-width="1.5" fill="var(--gold)" fill-opacity="0.15"/>
+            <text x="8" y="12" text-anchor="middle" font-size="8" fill="var(--gold)" font-family="serif">₹</text>
+          </svg>
+          <span class="modal-price-text"></span>
+        </span>
+        <span class="meta-stock" id="modalStock">
+          <!-- Stack of books SVG icon -->
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <rect x="2" y="11" width="12" height="3" rx="1" fill="currentColor" opacity="0.7"/>
+            <rect x="3" y="7"  width="10" height="3" rx="1" fill="currentColor" opacity="0.5"/>
+            <rect x="4" y="3"  width="8"  height="3" rx="1" fill="currentColor" opacity="0.3"/>
+          </svg>
+          <span class="modal-stock-text"></span>
+        </span>
+      </div>
+      <button class="btn-primary modal-wishlist-btn" id="modalWishlistBtn" onclick="toggleWishlistFromModal()">
+        ♥ Add to Wishlist
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TOAST NOTIFICATIONS
+═══════════════════════════════════════════════════════════════════════ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     WISHLIST FULL POPUP
+═══════════════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="limitModal" onclick="closeLimitModal(event)">
+  <div class="limit-popup" role="alertdialog" aria-modal="true">
+    <div class="limit-emoji">📚</div>
+    <h3>Your Wishlist is Full!</h3>
+    <p>Remove a book to add a new one. You can hold up to <strong>10 books</strong> in your wishlist.</p>
+    <button class="btn-primary" onclick="closeLimitModal(); showPage('wishlist')">Go to Wishlist</button>
+    <button class="btn-secondary" onclick="closeLimitModal()">Keep Browsing</button>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
